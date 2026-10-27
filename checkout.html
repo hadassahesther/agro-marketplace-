@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"><a href="marketplace.html">Marketplace</a></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container">
+    <h1>Checkout</h1>
+    <div id="checkoutBody" class="two-col"></div>
+  </div>
+</section>
+
+<footer class="site-footer"><div class="container"><p>Agro Marketplace prototype.</p></div></footer>
+
+<script src="js/api.js"></script>
+<script>
+const user = requireLogin("buyer");
+
+function renderCheckout() {
+  const items = Cart.get();
+  const body = document.getElementById("checkoutBody");
+  if (items.length === 0) {
+    body.innerHTML = `<p class="muted">Your cart is empty. <a href="marketplace.html">Browse the marketplace</a>.</p>`;
+    return;
+  }
+  const subtotal = Cart.subtotal();
+  const serviceFee = subtotal * 0.02;
+  const total = subtotal + serviceFee;
+
+  body.innerHTML = `
+    <div>
+      <h3>Shipping details</h3>
+      <form id="checkoutForm">
+        <label for="fullName">Full name</label>
+        <input id="fullName" required value="${user.fullName}">
+        <label for="line1">Address</label>
+        <input id="line1" required placeholder="Street address">
+        <label for="city">City</label>
+        <input id="city" required>
+        <label for="country">Country</label>
+        <select id="country" required>
+          <option value="United Kingdom">United Kingdom</option>
+          <option value="United States">United States</option>
+          <option value="Other">Other</option>
+        </select>
+        <label for="postalCode">Postal / ZIP code</label>
+        <input id="postalCode" required>
+
+        <h3 style="margin-top:1.5rem;">Payment method</h3>
+        <label style="display:flex; align-items:center; gap:0.5rem; font-weight:400;">
+          <input type="radio" name="paymentMethod" value="card" checked style="width:auto;"> Card (Visa, Mastercard) — via Flutterwave
+        </label>
+        <label style="display:flex; align-items:center; gap:0.5rem; font-weight:400;">
+          <input type="radio" name="paymentMethod" value="bank_transfer" style="width:auto;"> Direct bank transfer
+        </label>
+        <label style="display:flex; align-items:center; gap:0.5rem; font-weight:400;">
+          <input type="radio" name="paymentMethod" value="crypto" style="width:auto;"> Crypto (USDT/USDC, subject to verification)
+        </label>
+
+        <button class="btn btn-primary btn-block" style="margin-top:1.5rem;" type="submit">Place order</button>
+        <div id="checkoutError"></div>
+      </form>
+    </div>
+    <div>
+      <h3>Order summary</h3>
+      <table>
+        <tbody>
+          ${items.map((i) => `<tr><td>${i.name} × ${i.quantity}</td><td>${formatUSD(i.unitPrice * i.quantity)}</td></tr>`).join("")}
+        </tbody>
+      </table>
+      <div style="margin-top:1rem;">
+        <div class="flex-between"><span class="muted">Subtotal</span><span>${formatUSD(subtotal)}</span></div>
+        <div class="flex-between"><span class="muted">Buyer service fee (2%)</span><span>${formatUSD(serviceFee)}</span></div>
+        <hr class="divider">
+        <div class="flex-between" style="font-weight:700; font-size:1.1rem;"><span>Total</span><span>${formatUSD(total)}</span></div>
+      </div>
+      <p class="fee-note" style="margin-top:1rem;">Your payment is held securely until you confirm the order has arrived.</p>
+    </div>
+  `;
+
+  document.getElementById("checkoutForm").addEventListener("submit", handleSubmit);
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+  const errorBox = document.getElementById("checkoutError");
+  errorBox.innerHTML = "";
+
+  const items = Cart.get().map((i) => ({ productId: i.productId, quantity: i.quantity }));
+  const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+  const shippingAddress = {
+    fullName: document.getElementById("fullName").value,
+    line1: document.getElementById("line1").value,
+    city: document.getElementById("city").value,
+    country: document.getElementById("country").value,
+    postalCode: document.getElementById("postalCode").value,
+  };
+
+  try {
+    const { order } = await apiRequest("/orders", { method: "POST", body: { items, shippingAddress, paymentMethod } });
+    Cart.clear();
+
+    if (paymentMethod === "card") {
+      const { checkoutUrl } = await apiRequest("/payments/initiate", { method: "POST", body: { orderId: order.id } });
+      window.location.href = checkoutUrl;
+    } else if (paymentMethod === "crypto") {
+      window.location.href = `order-detail.html?id=${order.id}&crypto=1`;
+    } else {
+      window.location.href = `order-detail.html?id=${order.id}`;
+    }
+  } catch (err) {
+    errorBox.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+}
+
+if (user) renderCheckout();
+</script>
+</body>
+</html>

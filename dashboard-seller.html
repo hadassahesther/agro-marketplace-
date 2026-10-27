@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seller dashboard — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"><a href="marketplace.html">Marketplace</a></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container">
+    <div class="flex-between">
+      <h1>Seller dashboard</h1>
+      <a href="sell-new.html" class="btn btn-primary">+ New listing</a>
+    </div>
+
+    <h3 style="margin-top:2rem;">Your listings</h3>
+    <div id="listingsTable"><p class="muted">Loading…</p></div>
+
+    <h3 style="margin-top:2.5rem;">Orders to fulfil</h3>
+    <div id="ordersTable"><p class="muted">Loading…</p></div>
+  </div>
+</section>
+
+<script src="js/api.js"></script>
+<script>
+const user = requireLogin("seller");
+
+async function loadListings() {
+  const el = document.getElementById("listingsTable");
+  try {
+    const { products } = await apiRequest("/products/mine/list");
+    if (products.length === 0) {
+      el.innerHTML = `<p class="muted">No listings yet. <a href="sell-new.html">Create your first one</a>.</p>`;
+      return;
+    }
+    el.innerHTML = `<table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th></tr></thead>
+      <tbody>${products
+        .map(
+          (p) => `<tr>
+          <td>${p.name}</td><td>${p.category}</td><td>${formatUSD(p.unitPrice)} / ${p.unit}</td>
+          <td>${p.quantityAvailable} ${p.unit}</td><td>${p.status}</td>
+        </tr>`
+        )
+        .join("")}</tbody></table>`;
+  } catch (err) {
+    el.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+}
+
+async function loadOrders() {
+  const el = document.getElementById("ordersTable");
+  try {
+    const { orders } = await apiRequest("/orders/selling");
+    if (orders.length === 0) {
+      el.innerHTML = `<p class="muted">No orders yet.</p>`;
+      return;
+    }
+    el.innerHTML = `<table><thead><tr><th>Order</th><th>Items</th><th>Status</th><th>Your payout</th><th></th></tr></thead>
+      <tbody>${orders
+        .map((o) => {
+          const payout = o.lineItems.reduce((s, li) => s + li.sellerPayout, 0);
+          return `<tr>
+            <td>${o.orderNumber}</td>
+            <td>${o.lineItems.map((li) => `${li.productName} × ${li.quantity}`).join(", ")}</td>
+            <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
+            <td>${formatUSD(payout)}</td>
+            <td>
+              ${o.status === "paid" ? `<button class="btn btn-sm btn-primary shipBtn" data-id="${o.id}">Mark shipped</button>` : ""}
+              <a href="order-detail.html?id=${o.id}" class="btn btn-sm btn-outline">Details</a>
+            </td>
+          </tr>`;
+        })
+        .join("")}</tbody></table>`;
+
+    el.querySelectorAll(".shipBtn").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const carrier = prompt("Carrier name (e.g. DHL, local courier):");
+        const trackingNumber = prompt("Tracking number (optional):");
+        try {
+          await apiRequest(`/orders/${btn.dataset.id}/ship`, { method: "PUT", body: { carrier, trackingNumber } });
+          loadOrders();
+        } catch (err) {
+          alert(err.message);
+        }
+      })
+    );
+  } catch (err) {
+    el.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+}
+
+if (user) {
+  loadListings();
+  loadOrders();
+}
+</script>
+</body>
+</html>

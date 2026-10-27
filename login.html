@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log in — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"><a href="marketplace.html">Marketplace</a></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="form-panel">
+  <h2>Log in</h2>
+  <form id="loginForm">
+    <label for="email">Email</label>
+    <input id="email" type="email" required>
+    <label for="password">Password</label>
+    <input id="password" type="password" required>
+    <button class="btn btn-primary btn-block" type="submit" style="margin-top:1.2rem;">Log in</button>
+    <div id="loginError"></div>
+  </form>
+  <p class="muted" style="margin-top:1rem;">No account yet? <a href="register.html">Create one</a>.</p>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorBox = document.getElementById("loginError");
+  errorBox.innerHTML = "";
+  try {
+    const { token, user } = await apiRequest("/auth/login", {
+      method: "POST",
+      body: { email: document.getElementById("email").value, password: document.getElementById("password").value },
+    });
+    Session.setToken(token);
+    Session.setUser(user);
+    window.location.href = user.role === "seller" ? "dashboard-seller.html" : "dashboard-buyer.html";
+  } catch (err) {
+    errorBox.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>New listing — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"><a href="dashboard-seller.html">Dashboard</a></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="form-panel">
+  <h2>New listing</h2>
+  <form id="productForm">
+    <label for="name">Product name</label>
+    <input id="name" required placeholder="e.g. Dried Crayfish (Premium)">
+
+    <label for="category">Category</label>
+    <select id="category" required>
+      <option>Garri</option>
+      <option>Palm Oil</option>
+      <option>Crayfish</option>
+      <option>Cocoa</option>
+      <option>Cashew</option>
+      <option>Spices</option>
+      <option>Other Products</option>
+    </select>
+
+    <label for="description">Description</label>
+    <textarea id="description" required placeholder="Quality, processing method, packaging..."></textarea>
+
+    <label for="unitPrice">Price per unit (USD)</label>
+    <input id="unitPrice" type="number" step="0.01" min="0.01" required>
+
+    <label for="unit">Unit</label>
+    <input id="unit" required placeholder="e.g. kg, 50kg bag, 25L jerrycan">
+
+    <label for="quantityAvailable">Quantity available</label>
+    <input id="quantityAvailable" type="number" step="0.01" min="0.01" required>
+
+    <label for="originCountry">Origin country</label>
+    <input id="originCountry" required placeholder="e.g. Nigeria">
+
+    <label for="image">Product photo</label>
+    <input id="image" type="file" accept="image/png, image/jpeg, image/webp">
+
+    <button class="btn btn-primary btn-block" type="submit" style="margin-top:1.2rem;">Publish listing</button>
+    <div id="productError"></div>
+  </form>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const user = requireLogin("seller");
+
+document.getElementById("productForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorBox = document.getElementById("productError");
+  errorBox.innerHTML = "";
+
+  const formData = new FormData();
+  formData.append("name", document.getElementById("name").value);
+  formData.append("category", document.getElementById("category").value);
+  formData.append("description", document.getElementById("description").value);
+  formData.append("unitPrice", document.getElementById("unitPrice").value);
+  formData.append("unit", document.getElementById("unit").value);
+  formData.append("quantityAvailable", document.getElementById("quantityAvailable").value);
+  formData.append("originCountry", document.getElementById("originCountry").value);
+  const imageFile = document.getElementById("image").files[0];
+  if (imageFile) formData.append("image", imageFile);
+
+  try {
+    await apiRequest("/products", { method: "POST", body: formData, isFormData: true });
+    window.location.href = "dashboard-seller.html";
+  } catch (err) {
+    errorBox.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+});
+</script>
+</body>
+</html>

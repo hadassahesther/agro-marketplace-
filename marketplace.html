@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marketplace — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav">
+      <a href="marketplace.html" class="active">Marketplace</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="index.html#sellers">Sellers</a>
+      <a href="index.html#buyers">Buyers</a>
+      <a href="index.html#logistics">Logistics</a>
+    </nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container">
+    <h1>Marketplace</h1>
+    <p class="muted">Verified listings from African farmers and processors, priced in USD.</p>
+
+    <div style="display:flex; gap:0.6rem; margin: 1rem 0;">
+      <input type="search" id="searchInput" placeholder="Search products (e.g. crayfish, garri)...">
+      <button class="btn btn-primary" id="searchBtn">Search</button>
+    </div>
+
+    <div class="chip-row" id="categoryChips"></div>
+
+    <div id="productGrid" class="product-grid">
+      <p class="muted">Loading products…</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><p>Agro Marketplace prototype.</p></div>
+</footer>
+
+<script src="js/api.js"></script>
+<script>
+const CATEGORIES = ["Garri", "Palm Oil", "Crayfish", "Cocoa", "Cashew", "Spices", "Other Products"];
+const params = new URLSearchParams(window.location.search);
+let activeCategory = params.get("category") || "";
+
+function renderChips() {
+  const el = document.getElementById("categoryChips");
+  const all = [{ label: "All", value: "" }, ...CATEGORIES.map((c) => ({ label: c, value: c }))];
+  el.innerHTML = all
+    .map(
+      (c) =>
+        `<button class="chip ${c.value === activeCategory ? "active" : ""}" data-cat="${c.value}">${c.label}</button>`
+    )
+    .join("");
+  el.querySelectorAll(".chip").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      activeCategory = btn.dataset.cat;
+      renderChips();
+      loadProducts();
+    })
+  );
+}
+
+async function loadProducts() {
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = `<p class="muted">Loading products…</p>`;
+  const search = document.getElementById("searchInput").value.trim();
+
+  const query = new URLSearchParams();
+  if (activeCategory) query.set("category", activeCategory);
+  if (search) query.set("search", search);
+
+  try {
+    const data = await apiRequest(`/products?${query.toString()}`);
+    if (data.products.length === 0) {
+      grid.innerHTML = `<p class="muted">No products found. Try a different search or category — or check that the backend is running (see README).</p>`;
+      return;
+    }
+    grid.innerHTML = data.products
+      .map(
+        (p) => `
+      <a class="product-card" href="product.html?id=${p.id}">
+        ${p.imageUrl ? `<img src="http://localhost:4000${p.imageUrl}" alt="${p.name}">` : `<div class="img-fallback">No photo yet</div>`}
+        <div class="body">
+          <div class="category-tag">${p.category}</div>
+          <h3>${p.name}</h3>
+          <div class="origin">From ${p.originCountry}${p.seller ? " · " + p.seller.fullName : ""}</div>
+          <div class="price-row">
+            <span class="price">${formatUSD(p.unitPrice)}</span>
+            <span class="unit">per ${p.unit}</span>
+          </div>
+        </div>
+      </a>`
+      )
+      .join("");
+  } catch (err) {
+    grid.innerHTML = `<p class="form-error">Could not load products: ${err.message}. Make sure the backend server is running on localhost:4000.</p>`;
+  }
+}
+
+document.getElementById("searchBtn").addEventListener("click", loadProducts);
+document.getElementById("searchInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") loadProducts();
+});
+
+renderChips();
+loadProducts();
+</script>
+</body>
+</html>

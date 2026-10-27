@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Payment status — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container" style="max-width:600px;">
+    <h1>Confirming your payment…</h1>
+    <div id="statusBox"><p class="muted">Please wait, we're verifying your payment with Flutterwave.</p></div>
+  </div>
+</section>
+
+<script src="js/api.js"></script>
+<script>
+async function verify() {
+  const params = new URLSearchParams(window.location.search);
+  const transactionId = params.get("transaction_id");
+  const box = document.getElementById("statusBox");
+
+  if (!transactionId) {
+    box.innerHTML = `<div class="form-error">No transaction reference found in the URL.</div>`;
+    return;
+  }
+  try {
+    const { verified, order } = await apiRequest(`/payments/verify?transaction_id=${transactionId}`);
+    if (verified) {
+      box.innerHTML = `<div class="form-success">Payment confirmed for order ${order.orderNumber}. The seller has been notified to ship your order.</div>
+        <a href="order-detail.html?id=${order.id}" class="btn btn-primary" style="margin-top:1rem;">View order</a>`;
+    } else {
+      box.innerHTML = `<div class="form-error">We couldn't confirm this payment yet. If you completed payment, please contact support with reference ${transactionId}.</div>`;
+    }
+  } catch (err) {
+    box.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+}
+verify();
+</script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="index.html">Agro<span>Marketplace</span></a>
+    <div class="nav-actions"><button class="btn btn-primary btn-sm" onclick="logout()">Log out</button></div>
+  </div>
+</header>
+
+<main class="section-tight">
+  <div class="container">
+    <h1>Platform administration</h1>
+    <p class="muted">Operations dashboard for verification, payments, payouts and marketplace activity.</p>
+
+    <div id="stats" class="grid-3" style="margin:2rem 0"></div>
+
+    <div class="card">
+      <h2>Ledger</h2>
+      <div id="ledgerSummary">Loading…</div>
+      <p class="fee-note" style="margin-top:0.8rem;">
+        The ledger records money movement (payments, escrow holds, payouts, refunds) as balanced double-entry
+        rows. "Balanced" below means every debit has a matching credit across the whole system — if this ever
+        shows unbalanced, something in the payment code has a bug and needs investigating before it goes further.
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <h2>Pending bank / crypto payments</h2>
+      <div id="payments">Loading…</div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <h2>Seller payouts</h2>
+      <p class="muted">Money the ledger says is owed to sellers. Sending the transfer is still a manual step — mark it here once you've actually sent it via your bank or payment provider.</p>
+      <div id="payouts">Loading…</div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <h2>Users / KYC</h2>
+      <div id="users">Loading…</div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <h2>Recent orders</h2>
+      <div id="orders">Loading…</div>
+    </div>
+  </div>
+</main>
+
+<script src="js/api.js"></script>
+<script>
+const adminUser = Session.getUser();
+if (!adminUser || adminUser.role !== "admin") window.location.href = "login.html";
+
+function logout() {
+  Session.clear();
+  window.location.href = "login.html";
+}
+
+async function load() {
+  try {
+    const overview = await apiRequest("/admin/overview");
+
+    document.getElementById("stats").innerHTML = Object.entries(overview.counts)
+      .map(([k, v]) => `<div class="card"><div class="muted">${statusLabel(k)}</div><strong style="font-size:2rem">${v}</strong></div>`)
+      .join("");
+
+    const l = overview.ledger;
+    document.getElementById("ledgerSummary").innerHTML = `
+      <div class="grid-3">
+        <div><div class="muted">Platform revenue earned</div><strong>${formatUSD(l.platformRevenue)}</strong></div>
+        <div><div class="muted">Currently held in escrow</div><strong>${formatUSD(l.platformEscrowBalance)}</strong></div>
+        <div><div class="muted">Books balanced</div><strong style="color: ${l.isBalanced ? "var(--color-green-dark)" : "var(--color-brick)"}">${l.isBalanced ? "Yes" : "NO — investigate"}</strong></div>
+      </div>`;
+
+    const allOrders = await apiRequest("/admin/orders");
+    const pending = allOrders.orders.filter((o) => o.status === "pending_verification");
+    document.getElementById("payments").innerHTML = pending.length
+      ? pending.map((o) => `
+        <div style="padding:0.8rem 0; border-bottom:1px solid var(--color-line); display:flex; justify-content:space-between; align-items:center;">
+          <span><strong>${o.orderNumber}</strong> — ${formatUSD(o.orderTotal)} <span class="muted">(${o.paymentMethod})</span></span>
+          <button class="btn btn-sm btn-primary" onclick="verify('${o.id}')">Verify payment</button>
+        </div>`).join("")
+      : `<p class="muted">No pending bank/crypto payments.</p>`;
+
+    const payoutsData = await apiRequest("/admin/payouts");
+    const pendingPayouts = payoutsData.payouts.filter((p) => ["pending", "processing"].includes(p.status));
+    document.getElementById("payouts").innerHTML = pendingPayouts.length
+      ? `<table><thead><tr><th>Seller</th><th>Amount</th><th>Status</th><th>Requested</th><th></th></tr></thead><tbody>
+          ${pendingPayouts.map((p) => `
+            <tr>
+              <td>${p.sellerId}</td>
+              <td>${formatUSD(p.amount)}</td>
+              <td><span class="badge badge-pending_payment">${statusLabel(p.status)}</span></td>
+              <td>${formatDate(p.requestedAt)}</td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="markPayout('${p.id}','paid')">Mark paid</button>
+                <button class="btn btn-sm btn-outline" onclick="markPayout('${p.id}','failed')">Mark failed</button>
+              </td>
+            </tr>`).join("")}
+        </tbody></table>`
+      : `<p class="muted">No payouts waiting to be sent.</p>`;
+
+    const users = await apiRequest("/admin/users");
+    document.getElementById("users").innerHTML = `<table><thead><tr><th>Name</th><th>Role</th><th>Country</th><th>KYC</th><th></th></tr></thead><tbody>
+      ${users.users.map((x) => `<tr><td>${x.fullName}</td><td>${x.role}</td><td>${x.country}</td><td>${x.kycStatus || "not_submitted"}</td><td>${x.role !== "admin" && x.kycStatus === "pending" ? `<button class="btn btn-sm btn-primary" onclick="approve('${x.id}')">Approve</button>` : ""}</td></tr>`).join("")}
+    </tbody></table>`;
+
+    document.getElementById("orders").innerHTML = `<table><thead><tr><th>Order</th><th>Total</th><th>Status</th><th>Created</th></tr></thead><tbody>
+      ${overview.recentOrders.map((x) => `<tr><td>${x.orderNumber}</td><td>${formatUSD(x.orderTotal)}</td><td><span class="badge badge-${x.status}">${statusLabel(x.status)}</span></td><td>${formatDate(x.createdAt)}</td></tr>`).join("")}
+    </tbody></table>`;
+  } catch (err) {
+    document.body.insertAdjacentHTML("beforeend", `<div class="container"><p class="form-error">${err.message}</p></div>`);
+  }
+}
+
+async function verify(id) {
+  try {
+    await apiRequest(`/admin/orders/${id}/verify-bank-transfer`, { method: "POST" });
+    load();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function approve(id) {
+  try {
+    await apiRequest(`/admin/users/${id}/verify`, { method: "PUT" });
+    load();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function markPayout(id, status) {
+  let providerReference = null;
+  if (status === "paid") providerReference = prompt("Provider/bank reference for this transfer (optional):") || null;
+  try {
+    await apiRequest(`/admin/payouts/${id}/status`, { method: "PUT", body: { status, providerReference } });
+    load();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+load();
+</script>
+</body>
+</html>

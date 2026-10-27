@@ -1,0 +1,290 @@
+/* =============================================================================
+   AGRO MARKETPLACE - Design tokens
+   Identity: a working export/trade document, not a generic SaaS landing page.
+   Deep field-green + a burnt spice-ochre accent, a slab serif for headings
+   (evokes shipping manifests / customs stamps) paired with a plain grotesk
+   for body and UI so the international buyer side reads as trustworthy.
+   ============================================================================= */
+:root {
+  /* Color */
+  --color-bg: #EEF0E6;          /* soft sage paper, not cream */
+  --color-surface: #FFFFFF;
+  --color-ink: #1B2B20;          /* near-black green */
+  --color-ink-soft: #4B594E;
+  --color-green: #2F5233;        /* primary - deep agro green */
+  --color-green-dark: #1F3D24;
+  --color-ochre: #B8752E;        /* spice / palm-oil accent */
+  --color-brick: #8B3A2B;        /* used sparingly - alerts, disputes */
+  --color-line: #D8D9CC;
+  --color-bg-sunken: #E4E6D8;
+
+  /* Type */
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-body: "IBM Plex Sans", "Inter", -apple-system, sans-serif;
+
+  /* Layout */
+  --radius: 3px;
+  --max-width: 1180px;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-bg);
+  color: var(--color-ink);
+  line-height: 1.55;
+  font-size: 16px;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0 0 var(--space-2);
+  letter-spacing: -0.01em;
+}
+h1 { font-size: clamp(2rem, 4vw, 3.1rem); }
+h2 { font-size: clamp(1.5rem, 2.6vw, 2.1rem); }
+h3 { font-size: 1.25rem; }
+p { margin: 0 0 var(--space-2); max-width: 68ch; }
+a { color: var(--color-green-dark); }
+
+.container {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-3);
+}
+
+/* ---------- Header / nav ---------- */
+.site-header {
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+.site-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  gap: var(--space-3);
+}
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+.brand span { color: var(--color-ochre); }
+
+.main-nav {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.main-nav a {
+  text-decoration: none;
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid transparent;
+}
+.main-nav a:hover, .main-nav a.active {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-ochre);
+}
+.nav-actions { display: flex; gap: var(--space-2); align-items: center; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.3rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--color-green); color: #fff; }
+.btn-primary:hover { background: var(--color-green-dark); }
+.btn-outline { background: transparent; border-color: var(--color-ink); color: var(--color-ink); }
+.btn-outline:hover { background: var(--color-ink); color: #fff; }
+.btn-ochre { background: var(--color-ochre); color: #fff; }
+.btn-ochre:hover { background: #9c611f; }
+.btn-sm { padding: 0.4rem 0.9rem; font-size: 0.85rem; }
+.btn-block { width: 100%; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+/* ---------- Hero ---------- */
+.hero {
+  border-bottom: 1px solid var(--color-line);
+  padding: var(--space-5) 0;
+}
+.hero .container { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: var(--space-4); align-items: center; }
+.hero-eyebrow { color: var(--color-ochre); font-weight: 600; margin-bottom: var(--space-1); }
+.hero-stats { display: flex; gap: var(--space-4); margin-top: var(--space-3); }
+.hero-stats div strong { display: block; font-family: var(--font-display); font-size: 1.7rem; }
+.hero-stats div span { color: var(--color-ink-soft); font-size: 0.85rem; }
+.hero-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+.hero-panel .manifest-row {
+  display: flex; justify-content: space-between;
+  padding: 0.5rem 0; border-bottom: 1px dashed var(--color-line);
+  font-size: 0.9rem;
+}
+.hero-panel .manifest-row:last-child { border-bottom: none; }
+
+@media (max-width: 800px) {
+  .hero .container { grid-template-columns: 1fr; }
+  .main-nav { display: none; }
+}
+
+/* ---------- Category chips ---------- */
+.chip-row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: var(--space-3) 0; }
+.chip {
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--color-ink-soft);
+  text-decoration: none;
+}
+.chip.active, .chip:hover { border-color: var(--color-green); color: var(--color-green-dark); }
+
+/* ---------- Product grid / cards ---------- */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-3) 0 var(--space-5);
+}
+.product-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--color-ink);
+  display: flex;
+  flex-direction: column;
+}
+.product-card img, .product-card .img-fallback {
+  width: 100%; height: 150px; object-fit: cover;
+  background: var(--color-bg-sunken);
+}
+.img-fallback { display: flex; align-items: center; justify-content: center; color: var(--color-ink-soft); font-size: 0.8rem; }
+.product-card .body { padding: var(--space-2); flex: 1; display: flex; flex-direction: column; }
+.product-card .category-tag { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-ochre); font-weight: 600; }
+.product-card h3 { font-size: 1.05rem; margin: 0.3rem 0; }
+.product-card .origin { font-size: 0.82rem; color: var(--color-ink-soft); margin-bottom: var(--space-1); }
+.product-card .price-row { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; }
+.product-card .price { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; }
+.product-card .unit { font-size: 0.78rem; color: var(--color-ink-soft); }
+
+/* ---------- Forms ---------- */
+.form-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  max-width: 460px;
+  margin: var(--space-4) auto;
+}
+label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; margin-top: var(--space-2); }
+input, select, textarea {
+  width: 100%;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  background: #fff;
+  color: var(--color-ink);
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--color-green);
+  outline-offset: 1px;
+}
+textarea { resize: vertical; min-height: 90px; }
+.field-hint { font-size: 0.78rem; color: var(--color-ink-soft); margin-top: 0.2rem; }
+.form-error {
+  background: #FBEAE6; border: 1px solid var(--color-brick); color: var(--color-brick);
+  padding: 0.6rem 0.8rem; border-radius: var(--radius); font-size: 0.88rem; margin-top: var(--space-2);
+}
+.form-success {
+  background: #E9F1E7; border: 1px solid var(--color-green); color: var(--color-green-dark);
+  padding: 0.6rem 0.8rem; border-radius: var(--radius); font-size: 0.88rem; margin-top: var(--space-2);
+}
+
+/* ---------- Tables (dashboards, order lists) ---------- */
+table { width: 100%; border-collapse: collapse; background: var(--color-surface); }
+th, td { text-align: left; padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--color-line); font-size: 0.9rem; }
+th { color: var(--color-ink-soft); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; }
+
+/* ---------- Status badges ---------- */
+.badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.76rem; font-weight: 600; }
+.badge-pending_payment, .badge-pending_verification { background: #F5E6CE; color: #8A5A16; }
+.badge-paid, .badge-shipped { background: #DCE8DB; color: var(--color-green-dark); }
+.badge-completed { background: var(--color-green); color: #fff; }
+.badge-disputed { background: #F4D9D3; color: var(--color-brick); }
+.badge-cancelled { background: #E4E6D8; color: var(--color-ink-soft); }
+
+/* ---------- Admin cards / stat grid ---------- */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2);
+}
+@media (max-width: 700px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ---------- Misc ---------- */
+.section { padding: var(--space-5) 0; }
+.section-tight { padding: var(--space-4) 0; }
+.section-alt { background: var(--color-bg-sunken); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.flex-between { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.muted { color: var(--color-ink-soft); }
+.divider { border: none; border-top: 1px solid var(--color-line); margin: var(--space-3) 0; }
+.fee-note { font-size: 0.82rem; color: var(--color-ink-soft); background: var(--color-bg-sunken); padding: 0.8rem; border-radius: var(--radius); }
+.site-footer { border-top: 1px solid var(--color-line); padding: var(--space-4) 0; margin-top: var(--space-5); color: var(--color-ink-soft); font-size: 0.85rem; }
+
+@media (max-width: 700px) {
+  .two-col { grid-template-columns: 1fr; }
+}

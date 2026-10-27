@@ -1,0 +1,24 @@
+{
+  "name": "agro-marketplace-backend",
+  "version": "3.0.0",
+  "description": "International agricultural marketplace MVP - PostgreSQL-backed, with a double-entry payment ledger, buyers, sellers, admin operations, payments, KYC, quotes and disputes",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "migrate": "node db/migrate.js",
+    "seed-admin": "node seed.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "multer": "^1.4.5-lts.1",
+    "axios": "^1.7.7",
+    "uuid": "^9.0.1",
+    "pg": "^8.12.0"
+  }
+}

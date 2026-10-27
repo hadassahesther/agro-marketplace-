@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav">
+      <a href="marketplace.html" class="active">Marketplace</a>
+      <a href="index.html#how-it-works">How it works</a>
+    </nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container" id="productContainer">
+    <p class="muted">Loading product…</p>
+  </div>
+</section>
+
+<footer class="site-footer"><div class="container"><p>Agro Marketplace prototype.</p></div></footer>
+
+<script src="js/api.js"></script>
+<script>
+const productId = new URLSearchParams(window.location.search).get("id");
+
+async function loadProduct() {
+  const container = document.getElementById("productContainer");
+  if (!productId) {
+    container.innerHTML = `<p class="form-error">No product specified.</p>`;
+    return;
+  }
+  try {
+    const { product: p } = await apiRequest(`/products/${productId}`);
+    container.innerHTML = `
+      <div class="two-col">
+        <div>
+          ${p.imageUrl ? `<img src="http://localhost:4000${p.imageUrl}" alt="${p.name}" style="width:100%; border-radius:3px; border:1px solid var(--color-line);">` : `<div class="img-fallback" style="height:320px; border-radius:3px;">No photo yet</div>`}
+        </div>
+        <div>
+          <div class="category-tag">${p.category}</div>
+          <h1 style="margin-top:0.3rem;">${p.name}</h1>
+          <p class="muted">From ${p.originCountry}${p.seller ? " · Sold by " + p.seller.fullName : ""}${p.seller && p.seller.verified ? " ✓ verified" : ""}</p>
+          <p>${p.description}</p>
+          <div style="font-family:var(--font-display); font-size:1.8rem; font-weight:600; margin:1rem 0 0.2rem;">
+            ${formatUSD(p.unitPrice)} <span style="font-size:1rem; font-weight:400; color:var(--color-ink-soft);">per ${p.unit}</span>
+          </div>
+          <p class="muted" style="margin-bottom:1rem;">${p.quantityAvailable} ${p.unit} available</p>
+
+          <label for="qty">Quantity (${p.unit})</label>
+          <input type="number" id="qty" min="1" max="${p.quantityAvailable}" value="1" style="max-width:140px;">
+
+          <div style="display:flex; gap:0.8rem; margin-top:1rem;">
+            <button class="btn btn-primary" id="addToCartBtn">Add to cart</button>
+            <a href="marketplace.html" class="btn btn-outline">Keep browsing</a>
+          </div>
+          <p class="fee-note" style="margin-top:1rem;">A small service fee is added at checkout to cover secure payment handling and buyer protection.</p>
+        </div>
+      </div>
+    `;
+    document.getElementById("addToCartBtn").addEventListener("click", () => {
+      const qty = parseFloat(document.getElementById("qty").value) || 1;
+      Cart.add(p, qty);
+      renderHeaderAuthState();
+      alert(`Added ${qty} ${p.unit} of ${p.name} to your cart.`);
+    });
+  } catch (err) {
+    container.innerHTML = `<p class="form-error">Could not load this product: ${err.message}</p>`;
+  }
+}
+
+loadProduct();
+</script>
+<script>document.addEventListener('DOMContentLoaded',()=>{const box=document.querySelector('.product-actions')||document.querySelector('main'); if(box){const b=document.createElement('button');b.className='btn btn-outline';b.textContent='Request wholesale quote';b.onclick=()=>{const id=new URLSearchParams(location.search).get('id');if(!Session.getToken()){location.href='login.html';return;}const qty=prompt('Quantity required:');if(!qty)return;const country=prompt('Destination country (e.g. United Kingdom):');if(!country)return;apiRequest('/quotes',{method:'POST',body:{productId:id,quantity:Number(qty),destinationCountry:country}}).then(()=>alert('Quote request sent.')).catch(e=>alert(e.message));};box.appendChild(b)}});</script></body>
+</html>

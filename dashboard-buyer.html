@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your orders — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"><a href="marketplace.html">Marketplace</a></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container">
+    <h1>Your orders</h1>
+    <div id="ordersTable"><p class="muted">Loading…</p></div>
+  </div>
+</section>
+
+<script src="js/api.js"></script>
+<script>
+const user = requireLogin("buyer");
+
+async function loadOrders() {
+  const el = document.getElementById("ordersTable");
+  try {
+    const { orders } = await apiRequest("/orders/mine");
+    if (orders.length === 0) {
+      el.innerHTML = `<p class="muted">No orders yet. <a href="marketplace.html">Browse the marketplace</a>.</p>`;
+      return;
+    }
+    el.innerHTML = `<table><thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+      <tbody>${orders
+        .map(
+          (o) => `<tr>
+          <td>${o.orderNumber}</td>
+          <td>${o.lineItems.map((li) => `${li.productName} × ${li.quantity}`).join(", ")}</td>
+          <td>${formatUSD(o.orderTotal)}</td>
+          <td><span class="badge badge-${o.status}">${statusLabel(o.status)}</span></td>
+          <td><a href="order-detail.html?id=${o.id}" class="btn btn-sm btn-outline">Details</a></td>
+        </tr>`
+        )
+        .join("")}</tbody></table>`;
+  } catch (err) {
+    el.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+}
+
+if (user) loadOrders();
+</script>
+</body>
+</html>

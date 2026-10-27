@@ -1,0 +1,13 @@
+Agro Marketplace v3.0.0
+
+v1: Full-stack prototype - JSON-file store, Express backend, static frontend.
+v2: Added admin/ops layer - KYC, quotes, messaging, notifications, disputes,
+    crypto payment intent flow, rate limiting.
+v3: Replaced the JSON-file store with PostgreSQL (backend/db/schema.sql) and
+    added a real double-entry payment ledger (backend/db/ledger.js) plus a
+    separate operational payouts table. All money-moving route logic now
+    goes through backend/services/paymentService.js so the ledger is only
+    ever posted from one place. Every backend .js file passes `node --check`,
+    but this has not been run against a live PostgreSQL instance or with
+    `npm install` completed - see README_V2.md and
+    backend/PRODUCTION_CHECKLIST.md before relying on it.

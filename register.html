@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create account — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"><a href="marketplace.html">Marketplace</a></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<div class="form-panel">
+  <h2>Create your account</h2>
+  <form id="registerForm">
+    <label for="role">I am a…</label>
+    <select id="role">
+      <option value="seller">Farmer / Seller</option>
+      <option value="buyer">Buyer</option>
+    </select>
+
+    <label for="fullName">Full name</label>
+    <input id="fullName" required>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" required>
+
+    <label for="password">Password</label>
+    <input id="password" type="password" required minlength="8">
+    <div class="field-hint">At least 8 characters.</div>
+
+    <label for="country">Country</label>
+    <input id="country" required placeholder="e.g. Nigeria, United Kingdom, United States">
+
+    <label for="phone">Phone (optional)</label>
+    <input id="phone">
+
+    <button class="btn btn-primary btn-block" type="submit" style="margin-top:1.2rem;">Create account</button>
+    <div id="registerError"></div>
+  </form>
+  <p class="muted" style="margin-top:1rem;">Already have an account? <a href="login.html">Log in</a>.</p>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const params = new URLSearchParams(window.location.search);
+if (params.get("role") === "seller") document.getElementById("role").value = "seller";
+if (params.get("role") === "buyer") document.getElementById("role").value = "buyer";
+
+document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorBox = document.getElementById("registerError");
+  errorBox.innerHTML = "";
+  try {
+    const { token, user } = await apiRequest("/auth/register", {
+      method: "POST",
+      body: {
+        role: document.getElementById("role").value,
+        fullName: document.getElementById("fullName").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        country: document.getElementById("country").value,
+        phone: document.getElementById("phone").value,
+      },
+    });
+    Session.setToken(token);
+    Session.setUser(user);
+    window.location.href = user.role === "seller" ? "dashboard-seller.html" : "dashboard-buyer.html";
+  } catch (err) {
+    errorBox.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+});
+</script>
+</body>
+</html>

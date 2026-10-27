@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your cart — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"><a href="marketplace.html">Marketplace</a></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container">
+    <h1>Your cart</h1>
+    <div id="cartContents"></div>
+  </div>
+</section>
+
+<footer class="site-footer"><div class="container"><p>Agro Marketplace prototype.</p></div></footer>
+
+<script src="js/api.js"></script>
+<script>
+function renderCart() {
+  const items = Cart.get();
+  const container = document.getElementById("cartContents");
+
+  if (items.length === 0) {
+    container.innerHTML = `<p class="muted">Your cart is empty. <a href="marketplace.html">Browse the marketplace</a>.</p>`;
+    return;
+  }
+
+  const subtotal = Cart.subtotal();
+  const serviceFee = subtotal * 0.05;
+  const total = subtotal + serviceFee;
+
+  container.innerHTML = `
+    <table>
+      <thead><tr><th>Product</th><th>Unit price</th><th>Quantity</th><th>Line total</th><th></th></tr></thead>
+      <tbody>
+        ${items
+          .map(
+            (i) => `
+          <tr>
+            <td>${i.name}</td>
+            <td>${formatUSD(i.unitPrice)} / ${i.unit}</td>
+            <td><input type="number" min="1" value="${i.quantity}" data-id="${i.productId}" class="qtyInput" style="width:80px;"></td>
+            <td>${formatUSD(i.unitPrice * i.quantity)}</td>
+            <td><button class="btn btn-sm btn-outline removeBtn" data-id="${i.productId}">Remove</button></td>
+          </tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>
+    <div style="max-width:320px; margin-left:auto; margin-top:1.5rem;">
+      <div class="flex-between"><span class="muted">Subtotal</span><span>${formatUSD(subtotal)}</span></div>
+      <div class="flex-between"><span class="muted">Buyer service fee (5%)</span><span>${formatUSD(serviceFee)}</span></div>
+      <hr class="divider">
+      <div class="flex-between" style="font-weight:700; font-size:1.1rem;"><span>Total</span><span>${formatUSD(total)}</span></div>
+      <a href="checkout.html" class="btn btn-primary btn-block" style="margin-top:1rem;">Proceed to checkout</a>
+    </div>
+  `;
+
+  container.querySelectorAll(".qtyInput").forEach((input) =>
+    input.addEventListener("change", () => {
+      Cart.updateQuantity(input.dataset.id, parseFloat(input.value) || 0);
+      renderCart();
+      renderHeaderAuthState();
+    })
+  );
+  container.querySelectorAll(".removeBtn").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      Cart.remove(btn.dataset.id);
+      renderCart();
+      renderHeaderAuthState();
+    })
+  );
+}
+
+renderCart();
+</script>
+</body>
+</html>

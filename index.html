@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agro Marketplace — Sell African produce to buyers in the UK & USA</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav">
+      <a href="marketplace.html" class="active">Marketplace</a>
+      <a href="index.html#how-it-works">How it works</a>
+      <a href="index.html#sellers">Sellers</a>
+      <a href="index.html#buyers">Buyers</a>
+      <a href="index.html#logistics">Logistics</a>
+    </nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <div>
+      <div class="hero-eyebrow">Farm-to-export, made simple</div>
+      <h1>Sell garri, palm oil and crayfish directly to buyers in the UK and USA.</h1>
+      <p>Agro Marketplace connects verified African farmers and processors with international buyers. We handle secure payment, a small commission, and order tracking — you handle what you do best.</p>
+      <div style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-top:1.2rem;">
+        <a href="register.html?role=seller" class="btn btn-primary">Start selling</a>
+        <a href="marketplace.html" class="btn btn-outline">Browse the marketplace</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong>7</strong><span>Product categories</span></div>
+        <div><strong>2</strong><span>Buyer markets: UK & USA</span></div>
+        <div><strong>5%</strong><span>Platform commission</span></div>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <div class="muted" style="font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.6rem;">Sample export manifest</div>
+      <div class="manifest-row"><span>Crayfish (dried), 50kg bag</span><span>$210.00</span></div>
+      <div class="manifest-row"><span>Palm Oil, 25L jerrycan</span><span>$95.00</span></div>
+      <div class="manifest-row"><span>Garri (yellow), 50kg bag</span><span>$60.00</span></div>
+      <div class="manifest-row"><span>Platform fee (5%)</span><span>$18.25</span></div>
+      <div class="manifest-row" style="font-weight:700;"><span>Total to buyer</span><span>$383.25</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how-it-works">
+  <div class="container">
+    <h2>How it works</h2>
+    <div class="two-col">
+      <div>
+        <h3>For sellers</h3>
+        <ol style="padding-left:1.2rem; color:var(--color-ink-soft);">
+          <li>Create a free seller account and add your bank payout details.</li>
+          <li>List your products — price, quantity, and origin.</li>
+          <li>When a buyer orders, we hold the funds securely.</li>
+          <li>Ship the order and mark it as shipped with tracking info.</li>
+          <li>Once the buyer confirms receipt, your payout is released — minus a 5% commission.</li>
+        </ol>
+      </div>
+      <div>
+        <h3>For buyers</h3>
+        <ol style="padding-left:1.2rem; color:var(--color-ink-soft);">
+          <li>Browse verified listings from African farmers and processors.</li>
+          <li>Add products to your cart and check out by card or bank transfer.</li>
+          <li>We hold your payment until you confirm the order arrived.</li>
+          <li>Track shipping status directly from your dashboard.</li>
+          <li>Raise a dispute any time if something isn't right.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt" id="sellers">
+  <div class="container">
+    <h2>Product categories</h2>
+    <p class="muted">A focused catalog built around export-ready staples.</p>
+    <div class="chip-row">
+      <a class="chip" href="marketplace.html?category=Garri">Garri</a>
+      <a class="chip" href="marketplace.html?category=Palm%20Oil">Palm Oil</a>
+      <a class="chip" href="marketplace.html?category=Crayfish">Crayfish</a>
+      <a class="chip" href="marketplace.html?category=Cocoa">Cocoa</a>
+      <a class="chip" href="marketplace.html?category=Cashew">Cashew</a>
+      <a class="chip" href="marketplace.html?category=Spices">Spices</a>
+      <a class="chip" href="marketplace.html?category=Other%20Products">Other Products</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="logistics">
+  <div class="container two-col">
+    <div>
+      <h2 id="buyers">Built for cross-border trade</h2>
+      <p>Every order carries a shipping address and tracking details, so buyers in London or New York know exactly where their shipment is — and sellers have a clear record for customs and export documentation.</p>
+    </div>
+    <div>
+      <h2>Fair, transparent fees</h2>
+      <p>We charge a small service fee to buyers and a small commission to sellers — both shown up front at checkout, never hidden in the price.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>Agro Marketplace — connecting African farmers to international buyers. This is a prototype build; see the README for production and compliance notes before handling real payments.</p>
+  </div>
+</footer>
+
+<script src="js/api.js"></script>
+</body>
+</html>

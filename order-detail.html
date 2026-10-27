@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Order detail — Agro Marketplace</title>
+<link rel="stylesheet" href="css/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">Agro<span>Marketplace</span></a>
+    <nav class="main-nav"></nav>
+    <div class="nav-actions" id="navActions"></div>
+  </div>
+</header>
+
+<section class="section-tight">
+  <div class="container" style="max-width:800px;" id="orderBody">
+    <p class="muted">Loading order…</p>
+  </div>
+</section>
+
+<script src="js/api.js"></script>
+<script>
+const user = requireLogin();
+const orderId = new URLSearchParams(window.location.search).get("id");
+
+async function loadOrder() {
+  const el = document.getElementById("orderBody");
+  try {
+    const { order: o } = await apiRequest(`/orders/${orderId}`);
+    const isBuyer = o.buyerId === user.id;
+
+    el.innerHTML = `
+      <div class="flex-between">
+        <h1>Order ${o.orderNumber}</h1>
+        <span class="badge badge-${o.status}">${statusLabel(o.status)}</span>
+      </div>
+      <p class="muted">Placed ${formatDate(o.createdAt)} · Paying by ${o.paymentMethod === "card" ? "card" : o.paymentMethod === "crypto" ? "crypto" : "bank transfer"}</p>
+
+      <table>
+        <thead><tr><th>Product</th><th>Qty</th><th>Unit price</th><th>Line total</th></tr></thead>
+        <tbody>
+          ${o.lineItems.map((li) => `<tr><td>${li.productName}</td><td>${li.quantity} ${li.unit}</td><td>${formatUSD(li.unitPrice)}</td><td>${formatUSD(li.totalChargedToBuyer)}</td></tr>`).join("")}
+        </tbody>
+      </table>
+      <p style="text-align:right; font-weight:700; margin-top:0.5rem;">Total: ${formatUSD(o.orderTotal)}</p>
+
+      <h3 style="margin-top:2rem;">Shipping to</h3>
+      <p class="muted">${o.shippingAddress.fullName}<br>${o.shippingAddress.line1}<br>${o.shippingAddress.city}, ${o.shippingAddress.country} ${o.shippingAddress.postalCode || ""}</p>
+
+      ${o.trackingInfo ? `<h3>Tracking</h3><p class="muted">Carrier: ${o.trackingInfo.carrier || "—"}<br>Tracking #: ${o.trackingInfo.trackingNumber || "—"}</p>` : ""}
+
+      <div id="actionArea" style="margin-top:1.5rem;"></div>
+
+      <h3 style="margin-top:2rem;">Status history</h3>
+      <ul class="muted">
+        ${o.statusHistory.map((h) => `<li>${statusLabel(h.status)} — ${formatDate(h.at)}</li>`).join("")}
+      </ul>
+
+      <button class="btn btn-outline btn-sm" id="disputeBtn" style="margin-top:1rem;">Raise a dispute</button>
+    `;
+
+    renderActions(o, isBuyer);
+
+    document.getElementById("disputeBtn").addEventListener("click", async () => {
+      const reason = prompt("Briefly describe the issue:");
+      if (!reason) return;
+      try {
+        await apiRequest(`/orders/${o.id}/dispute`, { method: "PUT", body: { reason } });
+        loadOrder();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  } catch (err) {
+    el.innerHTML = `<div class="form-error">${err.message}</div>`;
+  }
+}
+
+function renderActions(o, isBuyer) {
+  const area = document.getElementById("actionArea");
+
+  if (isBuyer && o.paymentMethod === "crypto" && o.status === "pending_payment") {
+    area.innerHTML = `<div class="form-panel" style="margin:0;max-width:100%;"><h3>Crypto payment</h3><p class="muted">Create a payment address, transfer the exact amount, then submit your transaction hash. A verified provider/admin must confirm it before the order is marked paid.</p><select id="cryptoAsset"><option>USDT</option><option>USDC</option></select><select id="cryptoNetwork"><option>TRC20</option><option>ERC20</option></select><button class="btn btn-primary" id="createCrypto" style="margin-top:.8rem">Create payment</button><div id="cryptoBox"></div></div>`;
+    document.getElementById('createCrypto').onclick=async()=>{try{const p=await apiRequest('/payments/crypto/create',{method:'POST',body:{orderId:o.id,asset:document.getElementById('cryptoAsset').value,network:document.getElementById('cryptoNetwork').value}});document.getElementById('cryptoBox').innerHTML=`<p><strong>Network:</strong> ${p.payment.network}</p><p><strong>Asset:</strong> ${p.payment.asset}</p><p style="word-break:break-all"><strong>Address:</strong> ${p.payment.address}</p><p><strong>Expected amount:</strong> ${formatUSD(p.payment.expectedAmount)}</p><input id="txHash" placeholder="Blockchain transaction hash"><button class="btn btn-outline" id="submitTx">Submit transaction hash</button>`;document.getElementById('submitTx').onclick=async()=>{try{await apiRequest('/payments/crypto/confirm',{method:'POST',body:{orderId:o.id,txHash:document.getElementById('txHash').value}});loadOrder()}catch(e){alert(e.message)}}}catch(e){alert(e.message)}};
+  } else if (isBuyer && o.paymentMethod === "bank_transfer" && o.status === "pending_payment") {
+    area.innerHTML = `
+      <div class="form-panel" style="margin:0; max-width:100%;">
+        <h3>Upload proof of payment</h3>
+        <p class="muted">Transfer ${formatUSD(o.orderTotal)} to the platform's bank account (details sent to your email), then upload your receipt here.</p>
+        <input type="file" id="proofFile" accept="image/*,application/pdf">
+        <button class="btn btn-primary" id="uploadProofBtn" style="margin-top:0.8rem;">Upload proof</button>
+      </div>`;
+    document.getElementById("uploadProofBtn").addEventListener("click", async () => {
+      const file = document.getElementById("proofFile").files[0];
+      if (!file) return alert("Please choose a file first.");
+      const formData = new FormData();
+      formData.append("proof", file);
+      try {
+        await apiRequest(`/orders/${o.id}/upload-payment-proof`, { method: "POST", body: formData, isFormData: true });
+        loadOrder();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  } else if (isBuyer && o.status === "shipped") {
+    area.innerHTML = `<button class="btn btn-primary" id="confirmBtn">Confirm I received this order</button>`;
+    document.getElementById("confirmBtn").addEventListener("click", async () => {
+      if (!confirm("Confirm receipt? This releases payment to the seller.")) return;
+      try {
+        await apiRequest(`/orders/${o.id}/confirm-receipt`, { method: "PUT" });
+        loadOrder();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  } else if (o.status === "pending_verification") {
+    area.innerHTML = `<p class="fee-note">Payment proof submitted. We'll confirm your bank transfer shortly.</p>`;
+  }
+}
+
+if (user) loadOrder();
+</script>
+</body>
+</html>
